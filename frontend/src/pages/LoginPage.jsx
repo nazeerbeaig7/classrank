@@ -17,7 +17,7 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!identifier.trim() || !password) {
-      showError('Please enter Roll Number / Email and Password');
+      showError('Please enter your Roll Number and Password');
       return;
     }
 
@@ -50,13 +50,13 @@ const LoginPage = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                Roll Number or Email
+                Roll Number
               </label>
               <div className="relative">
                 <input
                   type="text"
                   required
-                  placeholder="e.g. 23JD1A0501 or email@student.edu"
+                  placeholder="e.g. 23JD1A0501"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-medium"

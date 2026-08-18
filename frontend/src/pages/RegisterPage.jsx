@@ -3,13 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import Navbar from '../components/Navbar';
-import { UserPlus, Hash, User, Mail, Lock, AlertCircle, Award, CheckCircle2 } from 'lucide-react';
+import { UserPlus, Hash, User, Lock, Award } from 'lucide-react';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
     rollNumber: '',
     name: '',
-    email: '',
     password: '',
     backlogCount: 0,
     cgpa: '',
@@ -27,7 +26,6 @@ const RegisterPage = () => {
     const errs = {};
     if (!formData.rollNumber.trim()) errs.rollNumber = 'Roll number is required';
     if (!formData.name.trim()) errs.name = 'Student name is required';
-    if (!formData.email.trim()) errs.email = 'Email is required';
     if (!formData.password) errs.password = 'Password is required';
 
     const backlogs = Number(formData.backlogCount);
@@ -69,7 +67,6 @@ const RegisterPage = () => {
       const student = await registerStudent({
         ...formData,
         rollNumber: formData.rollNumber.trim().toUpperCase(),
-        email: formData.email.trim().toLowerCase(),
         backlogCount: Number(formData.backlogCount),
         cgpa: Number(formData.cgpa),
         percentage: Number(formData.percentage)
@@ -144,50 +141,25 @@ const RegisterPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Email */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                  Email Address *
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    placeholder="student@college.edu"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`w-full pl-9 pr-3 py-2.5 rounded-xl border text-sm ${
-                      errors.email ? 'border-rose-500 bg-rose-50' : 'border-slate-300'
-                    }`}
-                  />
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
-                {errors.email && <p className="text-xs text-rose-600 mt-1 font-medium">{errors.email}</p>}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                Password *
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  name="password"
+                  required
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full pl-9 pr-3 py-2.5 rounded-xl border text-sm ${
+                    errors.password ? 'border-rose-500 bg-rose-50' : 'border-slate-300'
+                  }`}
+                />
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               </div>
-
-              {/* Password */}
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                  Password *
-                </label>
-                <div className="relative">
-                  <input
-                    type="password"
-                    name="password"
-                    required
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className={`w-full pl-9 pr-3 py-2.5 rounded-xl border text-sm ${
-                      errors.password ? 'border-rose-500 bg-rose-50' : 'border-slate-300'
-                    }`}
-                  />
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
-                {errors.password && <p className="text-xs text-rose-600 mt-1 font-medium">{errors.password}</p>}
-              </div>
+              {errors.password && <p className="text-xs text-rose-600 mt-1 font-medium">{errors.password}</p>}
             </div>
 
             <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 space-y-3">

@@ -17,25 +17,18 @@ const generateToken = (id, role) => {
 // @access  Public
 const registerStudent = async (req, res) => {
   try {
-    let { rollNumber, name, email, password, backlogCount, cgpa, percentage } = req.body;
+    let { rollNumber, name, password, backlogCount, cgpa, percentage } = req.body;
 
-    if (!rollNumber || !name || !email || !password || backlogCount === undefined || cgpa === undefined || percentage === undefined) {
+    if (!rollNumber || !name || !password || backlogCount === undefined || cgpa === undefined || percentage === undefined) {
       return res.status(400).json({ success: false, message: 'Please provide all required fields' });
     }
 
     rollNumber = rollNumber.toString().trim().toUpperCase();
-    email = email.toString().trim().toLowerCase();
 
     // Check duplicate roll number
     const rollExists = await Student.findOne({ rollNumber });
     if (rollExists) {
       return res.status(400).json({ success: false, message: `Student with Roll Number '${rollNumber}' is already registered` });
-    }
-
-    // Check duplicate email
-    const emailExists = await Student.findOne({ email });
-    if (emailExists) {
-      return res.status(400).json({ success: false, message: `Email '${email}' is already registered` });
     }
 
     // Numeric validations
@@ -62,7 +55,6 @@ const registerStudent = async (req, res) => {
     const student = await Student.create({
       rollNumber,
       name: name.trim(),
-      email,
       password: hashedPassword,
       backlogCount: numBacklogs,
       cgpa: Number(numCgpa.toFixed(2)),
@@ -79,7 +71,6 @@ const registerStudent = async (req, res) => {
         _id: student._id,
         rollNumber: student.rollNumber,
         name: student.name,
-        email: student.email,
         backlogCount: student.backlogCount,
         cgpa: student.cgpa,
         percentage: student.percentage,
@@ -105,10 +96,7 @@ const loginStudent = async (req, res) => {
 
     const cleanId = identifier.toString().trim();
     const student = await Student.findOne({
-      $or: [
-        { rollNumber: cleanId.toUpperCase() },
-        { email: cleanId.toLowerCase() }
-      ]
+      rollNumber: cleanId.toUpperCase()
     }).select('+password');
 
     if (!student) {
