@@ -20,34 +20,45 @@ const connectDB = async () => {
   }
 
   const isAtlas = uri.startsWith('mongodb+srv://');
+  const MAX_RETRIES = isAtlas ? 3 : 1;
 
-  try {
-    // Attempt MongoDB connection (Atlas Cloud or Local Server)
-    await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: isAtlas ? 10000 : 3000
-    });
-    console.log(`[Database] Connected to ${isAtlas ? 'MongoDB Atlas Cloud' : 'MongoDB Local Server'} at: ${mongoose.connection.host}`);
-  } catch (err) {
-    console.warn(`[Database] MongoDB connection failed (${uri}): ${err.message}`);
-    
-    // Fall back to memory server if local MongoDB or Atlas is not available
-    if (process.env.ALLOW_MEMORY_SERVER !== 'false' && process.env.VERCEL !== '1') {
-      try {
-        console.log('[Database] Initializing MongoDB Memory Server fallback...');
-        const { MongoMemoryServer } = require('mongodb-memory-server');
-        const mongod = await MongoMemoryServer.create();
-        const memUri = mongod.getUri();
-        
-        await mongoose.connect(memUri);
-        console.log(`[Database] Connected to MongoDB Memory Server at: ${memUri}`);
-      } catch (memErr) {
-        console.error('[Database] Failed to start MongoMemoryServer:', memErr.message);
-        process.exit(1);
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await mongoose.connect(uri, {
+        serverSelectionTimeoutMS: isAtlas ? 15000 : 3000
+      });
+      const dbType = isAtlas ? 'MongoDB Atlas Cloud' : 'MongoDB Local Server';
+      console.log(`[Database] ✅ Connected to ${dbType} at: ${mongoose.connection.host}`);
+      console.log(`[Database] Using database: "${mongoose.connection.name}" (DATA IS PERSISTENT)`);
+      return; // success — exit the function
+    } catch (err) {
+      console.warn(`[Database] Connection attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}`);
+      if (attempt < MAX_RETRIES) {
+        console.log(`[Database] Retrying in 2 seconds...`);
+        await new Promise(r => setTimeout(r, 2000));
       }
-    } else {
-      console.error('[Database] Connection failed and fallback disabled. Exiting application.');
+    }
+  }
+
+  // All attempts failed — fall back to memory server if allowed
+  if (process.env.ALLOW_MEMORY_SERVER !== 'false' && process.env.VERCEL !== '1') {
+    try {
+      console.warn('[Database] ⚠️  ALL ATLAS CONNECTION ATTEMPTS FAILED!');
+      console.warn('[Database] ⚠️  Falling back to MongoDB Memory Server.');
+      console.warn('[Database] ⚠️  DATA WILL BE LOST ON SERVER RESTART!');
+      const { MongoMemoryServer } = require('mongodb-memory-server');
+      const mongod = await MongoMemoryServer.create();
+      const memUri = mongod.getUri();
+      
+      await mongoose.connect(memUri);
+      console.warn(`[Database] ⚠️  Running on in-memory DB: ${memUri}`);
+    } catch (memErr) {
+      console.error('[Database] Failed to start MongoMemoryServer:', memErr.message);
       process.exit(1);
     }
+  } else {
+    console.error('[Database] Connection failed and fallback disabled. Exiting application.');
+    process.exit(1);
   }
 };
 
